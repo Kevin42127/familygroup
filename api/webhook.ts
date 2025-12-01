@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { WebhookEvent, MessageEvent, TextEventMessage } from '@line/bot-sdk';
-import { validateSignature, replyMessage } from '../src/services/lineService';
+import { validateSignature, replyMessage, pushMessage } from '../src/services/lineService';
 import { handleMessage } from '../src/handlers/messageHandler';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -29,6 +29,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   for (const event of events) {
+    // 處理加入群組或聊天室事件
+    if (event.type === 'join') {
+      try {
+        let targetId: string | null = null;
+        
+        // 檢查是群組還是聊天室
+        if (event.source.type === 'group') {
+          targetId = event.source.groupId;
+        } else if (event.source.type === 'room') {
+          targetId = event.source.roomId;
+        }
+        
+        if (targetId) {
+          const welcomeMessage = '大家好！我是 Kevin 的 AI 助手，專門協助這個群組。\n\n我可以幫大家：\n\n- 回答各種問題\n\n- 翻譯文字（中英日韓等）\n\n- 解釋概念和名詞\n\n- 提供建議和協助\n\n使用方式很簡單，只要 @ Kevin AI 然後問問題就可以了！\n\n例如：\n@ Kevin AI 翻譯 Hello 成中文\n@ Kevin AI 什麼是人工智慧？\n@ Kevin AI 你好\n\n有什麼需要幫忙的嗎？😊';
+          await pushMessage(targetId, welcomeMessage);
+        }
+      } catch (error) {
+        console.error('Error sending welcome message:', error);
+      }
+      continue;
+    }
+
+    // 處理訊息事件
     if (event.type !== 'message' || event.message.type !== 'text') {
       continue;
     }
