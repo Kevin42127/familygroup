@@ -9,18 +9,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const signature = req.headers['x-line-signature'] as string;
-  if (!signature) {
-    return res.status(401).json({ error: 'Missing signature' });
+  const bodyString = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
+  
+  // 處理 LINE 的驗證請求（沒有簽章或空請求體）
+  if (!signature || !bodyString || bodyString === '{}' || bodyString === '') {
+    return res.status(200).json({ success: true });
   }
 
-  const bodyData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  const bodyString = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-  
   if (!validateSignature(bodyString, signature)) {
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
+  const bodyData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   const events: WebhookEvent[] = bodyData.events || [];
+
+  // 如果沒有事件，返回成功（可能是驗證請求）
+  if (!events || events.length === 0) {
+    return res.status(200).json({ success: true });
+  }
 
   for (const event of events) {
     if (event.type !== 'message' || event.message.type !== 'text') {
