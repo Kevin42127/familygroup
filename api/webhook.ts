@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         
         if (targetId) {
-          const welcomeMessage = '大家好！我是 Kevin 最近開發的 AI 助手，想幫大家更方便地使用這個群組。\n\n我可以幫大家：\n\n- 翻譯文字（中英日韓等）\n\n- 回答問題、解釋概念\n\n- 提供建議和協助\n\n使用方式很簡單，只要 @ Kevin AI 然後問問題就可以了！\n\n例如：\n@ Kevin AI 翻譯 Hello 成中文\n@ Kevin AI 什麼是人工智慧？\n\n這是 Kevin 的學習專案，如果有任何問題或建議，歡迎告訴他！😊';
+          const welcomeMessage = '大家好！我是 Kevin 最近開發的 AI 助手，想幫大家更方便地使用這個群組。\n\n我可以幫大家：\n\n- 翻譯文字（中英日韓等）\n\n- 回答問題、解釋概念\n\n- 提供建議和協助\n\n使用方式很簡單，只要 @ Kevin AI 然後問問題就可以了！\n\n例如：\n@ Kevin AI 翻譯 Hello 成中文\n@ Kevin AI 什麼是人工智慧？';
           await pushMessage(targetId, welcomeMessage);
         }
       } catch (error) {
