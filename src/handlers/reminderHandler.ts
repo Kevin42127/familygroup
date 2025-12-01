@@ -4,21 +4,32 @@ export function handleReminderCommand(userId: string, command: string, args: str
   const action = args[0]?.toLowerCase();
 
   if (action === '新增' || action === 'add' || action === '建立') {
-    if (args.length < 3) {
-      return '提醒事項格式：提醒 新增 [內容] [時間]\n例如：提醒 新增 買菜 2024-01-15 10:00';
+    if (args.length < 2) {
+      return '提醒事項格式：提醒 新增 [內容]\n例如：提醒 新增 買菜\n\n也可以指定時間：提醒 新增 買菜 明天';
     }
 
-    const content = args.slice(1, -1).join(' ');
-    const timeStr = args[args.length - 1];
+    // 如果只有內容，沒有時間，預設為明天
+    let content: string;
+    let timeStr: string;
+    
+    if (args.length === 2) {
+      // 只有內容，沒有時間
+      content = args[1];
+      timeStr = '明天';
+    } else {
+      // 有內容和時間
+      content = args.slice(1, -1).join(' ');
+      timeStr = args[args.length - 1];
+    }
 
     const scheduledTime = parseTime(timeStr);
     if (!scheduledTime) {
-      return '時間格式錯誤，支援格式：\n- 完整日期：2024-12-15 10:00\n- 只有日期：2024-12-15（預設9:00）\n- 相對時間：1小時後、30分鐘後\n- 簡單時間：10:00、明天 10:00\n- 關鍵字：明天、後天';
+      return '時間格式錯誤，支援格式：\n- 完整日期：2024-12-15 10:00\n- 只有日期：2024-12-15（預設9:00）\n- 相對時間：1小時後、30分鐘後\n- 簡單時間：10:00、明天 10:00\n- 關鍵字：明天、後天\n\n如果不指定時間，預設為明天早上9點';
     }
 
     const reminder = storageService.createReminder(userId, content, scheduledTime);
     const timeStrFormatted = new Date(scheduledTime).toLocaleString('zh-TW');
-    return `已建立提醒事項：\n內容：${content}\n時間：${timeStrFormatted}\nID：${reminder.id}`;
+    return `已建立提醒事項：\n內容：${content}\n時間：${timeStrFormatted}`;
   }
 
   if (action === '查詢' || action === 'list' || action === '列表') {
