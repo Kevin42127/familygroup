@@ -83,12 +83,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
+      await replyMessage(messageEvent.replyToken, '正在思考...');
+      
       const replyText = await handleMessage(userId, cleanMessage);
-      await replyMessage(messageEvent.replyToken, replyText);
+      
+      const targetId = messageEvent.source.type === 'group' 
+        ? messageEvent.source.groupId 
+        : messageEvent.source.type === 'room'
+        ? messageEvent.source.roomId
+        : userId;
+      
+      if (targetId) {
+        await pushMessage(targetId, replyText);
+      }
     } catch (error) {
       console.error('Error handling message:', error);
       try {
-        await replyMessage(messageEvent.replyToken, '處理訊息時發生錯誤，請稍後再試。');
+        const targetId = messageEvent.source.type === 'group' 
+          ? messageEvent.source.groupId 
+          : messageEvent.source.type === 'room'
+          ? messageEvent.source.roomId
+          : userId;
+        
+        if (targetId) {
+          await pushMessage(targetId, '處理訊息時發生錯誤，請稍後再試。');
+        }
       } catch (replyError) {
         console.error('Error replying:', replyError);
       }

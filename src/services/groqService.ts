@@ -29,7 +29,7 @@ export async function chatWithAI(userId: string, userMessage: string): Promise<s
     });
 
     if (conversation && conversation.messages.length > 0) {
-      const recentMessages = conversation.messages.slice(-10);
+      const recentMessages = conversation.messages.slice(-20);
       for (const msg of recentMessages) {
         messages.push({
           role: msg.role,
