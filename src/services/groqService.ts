@@ -34,7 +34,7 @@ export async function chatWithAI(userId: string, userMessage: string): Promise<s
 
     messages.push({
       role: 'system',
-      content: '你是一個友善的 AI 助手，專門協助家庭群組管理。請使用繁體中文回應，不要使用簡體中文、英文或其他語言。'
+      content: '你是一個友善的 AI 助手，專門協助家庭群組管理。重要：你必須且只能使用繁體中文回應，絕對不能使用簡體中文、英文、日文或其他任何語言。所有回應都必須是繁體中文。'
     });
 
     if (conversation && conversation.messages.length > 0) {
