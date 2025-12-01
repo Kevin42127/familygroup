@@ -56,6 +56,18 @@ class StorageService {
     return false;
   }
 
+  clearUserData(userId: string): void {
+    this.conversations.delete(userId);
+    const userReminders = Array.from(this.reminders.entries())
+      .filter(([_, reminder]) => reminder.userId === userId)
+      .map(([id]) => id);
+    userReminders.forEach(id => this.reminders.delete(id));
+    const userSchedules = Array.from(this.schedules.entries())
+      .filter(([_, schedule]) => schedule.userId === userId)
+      .map(([id]) => id);
+    userSchedules.forEach(id => this.schedules.delete(id));
+  }
+
   getSchedules(userId: string, startDate?: number, endDate?: number): Schedule[] {
     let schedules = Array.from(this.schedules.values())
       .filter(s => s.userId === userId);
