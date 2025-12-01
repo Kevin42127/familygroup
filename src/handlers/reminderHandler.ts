@@ -13,7 +13,7 @@ export function handleReminderCommand(userId: string, command: string, args: str
 
     const scheduledTime = parseTime(timeStr);
     if (!scheduledTime) {
-      return '時間格式錯誤，請使用：YYYY-MM-DD HH:mm 或 相對時間（如：1小時後、明天10點）';
+      return '時間格式錯誤，支援格式：\n- 完整日期：2024-12-15 10:00\n- 只有日期：2024-12-15（預設9:00）\n- 相對時間：1小時後、30分鐘後\n- 簡單時間：10:00、明天 10:00\n- 關鍵字：明天、後天';
     }
 
     const reminder = storageService.createReminder(userId, content, scheduledTime);
@@ -50,31 +50,101 @@ export function handleReminderCommand(userId: string, command: string, args: str
 
 function parseTime(timeStr: string): number | null {
   const now = Date.now();
+  const timeStrLower = timeStr.toLowerCase().trim();
   
-  if (timeStr.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)) {
-    const date = new Date(timeStr);
-    return isNaN(date.getTime()) ? null : date.getTime();
+  // 完整日期時間格式：2024-12-15 10:00 或 2024/12/15 10:00
+  if (timeStr.match(/^\d{4}[-\/]\d{2}[-\/]\d{2}\s+\d{2}:\d{2}$/)) {
+    const dateStr = timeStr.replace(/\//g, '-');
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.getTime();
+    }
   }
 
-  if (timeStr.includes('小時後') || timeStr.includes('小时后')) {
-    const hours = parseInt(timeStr);
+  // 只有日期：2024-12-15（預設為當天 9:00）
+  if (timeStr.match(/^\d{4}[-\/]\d{2}[-\/]\d{2}$/)) {
+    const dateStr = timeStr.replace(/\//g, '-') + ' 09:00';
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.getTime();
+    }
+  }
+
+  // X小時後
+  const hoursMatch = timeStr.match(/(\d+)\s*小時後?/i);
+  if (hoursMatch) {
+    const hours = parseInt(hoursMatch[1]);
     if (!isNaN(hours)) {
       return now + hours * 60 * 60 * 1000;
     }
   }
 
-  if (timeStr.includes('分鐘後') || timeStr.includes('分钟后')) {
-    const minutes = parseInt(timeStr);
+  // X分鐘後
+  const minutesMatch = timeStr.match(/(\d+)\s*分鐘後?/i);
+  if (minutesMatch) {
+    const minutes = parseInt(minutesMatch[1]);
     if (!isNaN(minutes)) {
       return now + minutes * 60 * 1000;
     }
   }
 
-  if (timeStr === '明天') {
+  // 明天（預設早上9點）
+  if (timeStrLower === '明天' || timeStrLower === 'tomorrow') {
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(9, 0, 0, 0);
     return tomorrow.getTime();
+  }
+
+  // 後天
+  if (timeStrLower === '後天' || timeStrLower === 'day after tomorrow') {
+    const dayAfter = new Date(now);
+    dayAfter.setDate(dayAfter.getDate() + 2);
+    dayAfter.setHours(9, 0, 0, 0);
+    return dayAfter.getTime();
+  }
+
+  // 今天 + 時間：今天 10:00
+  if (timeStrLower.startsWith('今天')) {
+    const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      const today = new Date(now);
+      today.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
+      if (today.getTime() > now) {
+        return today.getTime();
+      } else {
+        // 如果時間已過，設為明天
+        today.setDate(today.getDate() + 1);
+        return today.getTime();
+      }
+    }
+  }
+
+  // 明天 + 時間：明天 10:00
+  if (timeStrLower.startsWith('明天')) {
+    const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
+      return tomorrow.getTime();
+    }
+  }
+
+  // 簡單時間格式：10:00（預設為今天，如果已過則為明天）
+  if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+    const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      const today = new Date(now);
+      today.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
+      if (today.getTime() > now) {
+        return today.getTime();
+      } else {
+        // 如果時間已過，設為明天
+        today.setDate(today.getDate() + 1);
+        return today.getTime();
+      }
+    }
   }
 
   return null;
