@@ -30,22 +30,170 @@ export function handleReminderCommand(userId: string, command: string, args: str
     let result = `您有 ${reminders.length} 個待處理的提醒事項：\n\n`;
     reminders.forEach((r, index) => {
       const timeStr = new Date(r.scheduledTime).toLocaleString('zh-TW');
-      result += `${index + 1}. ${r.content}\n   時間：${timeStr}\n   ID：${r.id}\n\n`;
+      result += `${index + 1}. ${r.content}\n   時間：${timeStr}\n\n`;
     });
     return result.trim();
   }
 
-  if (action === '刪除' || action === 'delete' || action === 'remove') {
-    if (args.length < 2) {
-      return '請提供要刪除的提醒事項 ID。';
+  if (action === '刪除' || action === 'delete' || action === 'remove' || action === '取消') {
+    const reminders = storageService.getReminders(userId);
+    if (reminders.length === 0) {
+      return '目前沒有待處理的提醒事項。';
     }
 
-    const id = args[1];
-    const success = storageService.deleteReminder(id, userId);
-    return success ? '提醒事項已刪除。' : '找不到該提醒事項或您沒有權限刪除。';
+    if (args.length < 2) {
+      return `請指定要刪除的提醒事項。\n例如：提醒 刪除 1 或 提醒 刪除 買菜\n\n目前有 ${reminders.length} 個提醒事項。`;
+    }
+
+    const deleteTarget = args.slice(1).join(' ').toLowerCase();
+    
+    // 嘗試解析為編號（第一個、第二個、1、2等）
+    const numberMatch = deleteTarget.match(/(\d+)|(第一|第二|第三|第四|第五|第六|第七|第八|第九|第十)/);
+    if (numberMatch) {
+      let index = -1;
+      if (numberMatch[1]) {
+        index = parseInt(numberMatch[1]) - 1;
+      } else if (numberMatch[2]) {
+        const numberMap: { [key: string]: number } = {
+          '第一': 0, '第二': 1, '第三': 2, '第四': 3, '第五': 4,
+          '第六': 5, '第七': 6, '第八': 7, '第九': 8, '第十': 9
+        };
+        index = numberMap[numberMatch[2]] || -1;
+      }
+      
+      if (index >= 0 && index < reminders.length) {
+        const reminder = reminders[index];
+        const success = storageService.deleteReminder(reminder.id, userId);
+        return success ? `已刪除提醒事項：${reminder.content}` : '刪除失敗。';
+      } else {
+        return `找不到第 ${index + 1} 個提醒事項，目前只有 ${reminders.length} 個。`;
+      }
+    }
+
+    // 嘗試用內容關鍵字匹配
+    const matchingReminders = reminders.filter(r => 
+      r.content.toLowerCase().includes(deleteTarget) || 
+      deleteTarget.includes(r.content.toLowerCase())
+    );
+
+    if (matchingReminders.length === 0) {
+      return `找不到包含「${args.slice(1).join(' ')}」的提醒事項。\n\n目前有 ${reminders.length} 個提醒事項，請使用編號或內容關鍵字刪除。`;
+    }
+
+    if (matchingReminders.length === 1) {
+      const success = storageService.deleteReminder(matchingReminders[0].id, userId);
+      return success ? `已刪除提醒事項：${matchingReminders[0].content}` : '刪除失敗。';
+    }
+
+    // 多個匹配，列出讓用戶選擇
+    let result = `找到 ${matchingReminders.length} 個匹配的提醒事項：\n\n`;
+    reminders.forEach((r, index) => {
+      if (matchingReminders.some(mr => mr.id === r.id)) {
+        const timeStr = new Date(r.scheduledTime).toLocaleString('zh-TW');
+        result += `${index + 1}. ${r.content}\n   時間：${timeStr}\n\n`;
+      }
+    });
+    result += '請使用編號來指定要刪除的項目，例如：提醒 刪除 1';
+    return result.trim();
   }
 
-  return '提醒事項指令：\n- 提醒 新增 [內容] [時間]\n- 提醒 查詢\n- 提醒 刪除 [ID]';
+  return '提醒事項指令：\n- 提醒 新增 [內容] [時間]\n- 提醒 查詢\n- 提醒 刪除 [編號或內容]\n\n或使用自然語言：\n- 提醒我明天買菜\n- 記得後天開會\n- 幫我記一下明天10點買菜\n- 提醒 刪除 1 或 提醒 刪除 買菜';
+}
+
+export function parseNaturalLanguageReminder(text: string): { content: string; time: string } | null {
+  const lowerText = text.toLowerCase();
+  
+  // 檢測提醒相關關鍵字
+  const reminderKeywords = ['提醒', '記得', '幫我記', '幫我提醒', '記一下', '記住', '別忘了'];
+  const hasReminderKeyword = reminderKeywords.some(keyword => lowerText.includes(keyword));
+  
+  if (!hasReminderKeyword) {
+    return null;
+  }
+
+  // 移除提醒關鍵字，取得實際內容
+  let cleanText = text;
+  for (const keyword of reminderKeywords) {
+    cleanText = cleanText.replace(new RegExp(keyword, 'gi'), '').trim();
+  }
+  
+  // 移除常見的連接詞
+  cleanText = cleanText.replace(/^(我|你|要|一下|的|啊|喔|哦|呢|吧)/gi, '').trim();
+  
+  if (!cleanText) {
+    return null;
+  }
+
+  // 嘗試提取時間和內容
+  // 模式1: 時間在前，內容在後（如：明天買菜、10點開會、後天買菜）
+  const timeFirstPatterns = [
+    /^(明天|後天|大後天|今天)\s*(.*)$/i,
+    /^(\d{1,2}:\d{2}|明天\s+\d{1,2}:\d{2}|後天\s+\d{1,2}:\d{2})\s*(.*)$/i,
+    /^(\d+\s*小時後|\d+\s*分鐘後)\s*(.*)$/i,
+    /^(\d{4}[-\/]\d{2}[-\/]\d{2}(?:\s+\d{1,2}:\d{2})?)\s*(.*)$/i,
+  ];
+
+  for (const pattern of timeFirstPatterns) {
+    const match = cleanText.match(pattern);
+    if (match && match[2]) {
+      return {
+        content: match[2].trim(),
+        time: match[1].trim()
+      };
+    }
+  }
+
+  // 模式2: 內容在前，時間在後（如：買菜明天、開會10點）
+  const contentFirstPatterns = [
+    /^(.+?)\s+(明天|後天|大後天|今天)$/i,
+    /^(.+?)\s+(\d{1,2}:\d{2})$/i,
+    /^(.+?)\s+(明天|後天)\s+(\d{1,2}:\d{2})$/i,
+    /^(.+?)\s+(\d+\s*小時後|\d+\s*分鐘後)$/i,
+    /^(.+?)\s+(\d{4}[-\/]\d{2}[-\/]\d{2}(?:\s+\d{1,2}:\d{2})?)$/i,
+  ];
+
+  for (const pattern of contentFirstPatterns) {
+    const match = cleanText.match(pattern);
+    if (match && match[1] && match[2]) {
+      let time = match[2].trim();
+      if (match[3]) {
+        time = `${match[2]} ${match[3]}`;
+      }
+      return {
+        content: match[1].trim(),
+        time: time
+      };
+    }
+  }
+
+  // 模式3: 只有內容，預設為明天（如：提醒我買菜）
+  if (cleanText && !cleanText.match(/\d|明天|後天|今天|小時|分鐘/)) {
+    return {
+      content: cleanText,
+      time: '明天'
+    };
+  }
+
+  // 模式4: 嘗試分離時間和內容（如：明天10點買菜）
+  const complexPattern = /^(.+?)\s+(明天|後天|今天)?\s*(\d{1,2}:\d{2})?\s*(.+)$/i;
+  const complexMatch = cleanText.match(complexPattern);
+  if (complexMatch) {
+    const parts = [];
+    if (complexMatch[2]) parts.push(complexMatch[2]);
+    if (complexMatch[3]) parts.push(complexMatch[3]);
+    const time = parts.join(' ') || '明天';
+    const content = complexMatch[4] || complexMatch[1];
+    
+    if (content) {
+      return {
+        content: content.trim(),
+        time: time.trim()
+      };
+    }
+  }
+
+  // 如果無法解析，返回 null（讓 AI 處理）
+  return null;
 }
 
 function parseTime(timeStr: string): number | null {
