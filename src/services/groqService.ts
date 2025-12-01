@@ -49,7 +49,7 @@ export async function chatWithAI(userId: string, userMessage: string): Promise<s
 
     const completion = await getGroqClient().chat.completions.create({
       messages: messages as any,
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.7,
       max_tokens: 1024
     });
