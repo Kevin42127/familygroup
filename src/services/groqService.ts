@@ -30,7 +30,12 @@ export async function getAvailableModels(): Promise<string[]> {
 export async function chatWithAI(userId: string, userMessage: string): Promise<string> {
   try {
     const conversation = storageService.getConversation(userId);
-    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
+
+    messages.push({
+      role: 'system',
+      content: '你是一個友善的 AI 助手，專門協助家庭群組管理。請使用繁體中文回應，不要使用簡體中文、英文或其他語言。'
+    });
 
     if (conversation && conversation.messages.length > 0) {
       const recentMessages = conversation.messages.slice(-10);
