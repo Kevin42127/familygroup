@@ -43,16 +43,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const messageText = textEvent.text || '';
     
-    // 檢查是否被 @AI 提及（支援 @AI、@ai、@Ai 等大小寫變體）
-    const isMentioned = /@AI\b/i.test(messageText);
+    // 檢查是否被 @ Kevin AI 提及（支援大小寫變體）
+    const isMentioned = /@\s*Kevin\s+AI/i.test(messageText) || /@Kevin\s+AI/i.test(messageText);
 
-    // 只在被 @AI 提及時才回應（群組或個人聊天都適用）
+    // 只在被 @ Kevin AI 提及時才回應（群組或個人聊天都適用）
     if (!isMentioned) {
       continue;
     }
 
-    // 移除 @AI 前綴，取得實際訊息內容
-    const cleanMessage = messageText.replace(/@AI\s*/gi, '').trim();
+    // 移除 @ Kevin AI 前綴，取得實際訊息內容
+    const cleanMessage = messageText.replace(/@\s*Kevin\s+AI\s*/gi, '').trim();
 
     // 如果移除 @AI 後沒有內容，跳過
     if (!cleanMessage) {
