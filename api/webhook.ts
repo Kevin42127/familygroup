@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { WebhookEvent, MessageEvent, TextEventMessage } from '@line/bot-sdk';
-import { validateSignature, replyMessage, pushMessage, pushImageMessage } from '../src/services/lineService';
+import { validateSignature, replyMessage, pushMessage } from '../src/services/lineService';
 import { handleMessage } from '../src/handlers/messageHandler';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -42,13 +42,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         
         if (targetId) {
-          const welcomeMessage = '大家好！我是 Kevin 最近建立的 AI 助手，想幫大家更方便地使用這個群組。\n\n我可以幫大家：\n\n- 翻譯文字（中英日韓等）\n\n- 回答問題、解釋概念\n\n- 提供建議和協助\n\n使用方式很簡單，只要 @ Kevin AI 然後問問題就可以了！\n\n例如：\n@ Kevin AI 翻譯 Hello 成中文\n@ Kevin AI 什麼是人工智慧？\n\n如果需要清除對話記錄，可以輸入：\n@ Kevin AI 清除資料';
+          const welcomeMessage = '大家好！我是 Kevin 最近建立的 AI 助手。\n\n我可以幫大家：\n\n- 翻譯文字（中英日韓等）\n\n- 回答問題、解釋概念\n\n- 提供建議和協助\n\n使用方式：\n@Kevin AI 你好\n@Kevin AI 你是誰\n\n如果需要清除對話記錄，可以輸入：\n@ Kevin AI 清除資料';
           await pushMessage(targetId, welcomeMessage);
-          
-          const fileId = '1MqkjnFzaqoC0amHwALpLv6_isoKQkOmh';
-          const imageUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
-          const previewUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
-          await pushImageMessage(targetId, imageUrl, previewUrl);
         }
       } catch (error) {
         console.error('Error sending welcome message:', error);
