@@ -65,31 +65,11 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
       layout: 'vertical',
       contents: [
         {
-          type: 'box',
-          layout: 'horizontal',
-          contents: [
-            {
-              type: 'image',
-              url: 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/smart_toy/default/24px.svg',
-              size: 'sm',
-              aspectRatio: '1:1',
-              aspectMode: 'fit',
-              backgroundColor: '#FFFFFF',
-              flex: 0,
-              margin: 'sm'
-            },
-            {
-              type: 'text',
-              text: 'Kevin AI',
-              weight: 'bold',
-              color: '#FFFFFF',
-              size: 'lg',
-              flex: 1,
-              align: 'start'
-            }
-          ],
-          spacing: 'md',
-          alignItems: 'center'
+          type: 'text',
+          text: 'Kevin AI',
+          weight: 'bold',
+          color: '#FFFFFF',
+          size: 'lg'
         }
       ],
       backgroundColor: '#1DB446',
