@@ -89,11 +89,7 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
         }
       ],
       backgroundColor: '#1DB446',
-      paddingAll: 'lg',
-      paddingTop: 'lg',
-      paddingBottom: 'lg',
-      paddingStart: 'lg',
-      paddingEnd: 'lg'
+      paddingAll: 'lg'
     },
     body: {
       type: 'box',
