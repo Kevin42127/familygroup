@@ -72,8 +72,7 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
               type: 'text',
               text: '🤖',
               size: 'lg',
-              flex: 0,
-              marginEnd: 'sm'
+              flex: 0
             },
             {
               type: 'text',
