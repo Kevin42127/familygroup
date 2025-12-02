@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { WebhookEvent, MessageEvent, TextEventMessage } from '@line/bot-sdk';
-import { validateSignature, replyMessage, pushMessage } from '../src/services/lineService';
+import { validateSignature, replyFlexMessage, pushFlexMessage } from '../src/services/lineService';
 import { handleMessage } from '../src/handlers/messageHandler';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         if (targetId) {
           const welcomeMessage = '大家好！我是 Kevin 最近建立的 AI 助手。\n\n我可以幫大家：\n\n- 翻譯文字（中英日韓等）\n\n- 回答問題、解釋概念\n\n- 提供建議和協助\n\n使用方式：\n@Kevin AI 你好\n@Kevin AI 你是誰\n\n如果需要清除對話記錄，可以輸入：\n@ Kevin AI 清除資料';
-          await pushMessage(targetId, welcomeMessage);
+          await pushFlexMessage(targetId, welcomeMessage);
         }
       } catch (error) {
         console.error('Error sending welcome message:', error);
@@ -84,11 +84,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
       const replyText = await handleMessage(userId, cleanMessage);
-      await replyMessage(messageEvent.replyToken, replyText);
+      await replyFlexMessage(messageEvent.replyToken, replyText);
     } catch (error) {
       console.error('Error handling message:', error);
       try {
-        await replyMessage(messageEvent.replyToken, '處理訊息時發生錯誤，請稍後再試。');
+        await replyFlexMessage(messageEvent.replyToken, '處理訊息時發生錯誤，請稍後再試。');
       } catch (replyError) {
         console.error('Error replying:', replyError);
       }

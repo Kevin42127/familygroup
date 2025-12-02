@@ -1,4 +1,4 @@
-import { Client, TextMessage, ImageMessage, validateSignature as lineValidateSignature } from '@line/bot-sdk';
+import { Client, TextMessage, ImageMessage, FlexMessage, FlexBubble, validateSignature as lineValidateSignature } from '@line/bot-sdk';
 import * as crypto from 'crypto';
 
 let client: Client | null = null;
@@ -55,6 +55,91 @@ export function validateSignature(body: string, signature: string): boolean {
     .update(body)
     .digest('base64');
   return hash === signature;
+}
+
+export function createAIReplyFlexMessage(text: string): FlexMessage {
+  const bubble: FlexBubble = {
+    type: 'bubble',
+    header: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        {
+          type: 'box',
+          layout: 'horizontal',
+          contents: [
+            {
+              type: 'text',
+              text: '🤖',
+              size: 'lg',
+              flex: 0,
+              marginEnd: 'sm'
+            },
+            {
+              type: 'text',
+              text: 'Kevin AI',
+              weight: 'bold',
+              color: '#FFFFFF',
+              size: 'lg',
+              flex: 1
+            }
+          ],
+          spacing: 'sm',
+          alignItems: 'center'
+        }
+      ],
+      backgroundColor: '#1DB446',
+      paddingTop: '16px',
+      paddingBottom: '16px',
+      paddingStart: '16px',
+      paddingEnd: '16px'
+    },
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        {
+          type: 'separator',
+          color: '#E5E5E5',
+          margin: 'md'
+        },
+        {
+          type: 'text',
+          text: text,
+          wrap: true,
+          color: '#333333',
+          size: 'md',
+          lineSpacing: '4px',
+          margin: 'md'
+        },
+        {
+          type: 'separator',
+          color: '#E5E5E5',
+          margin: 'md'
+        }
+      ],
+      paddingTop: '8px',
+      paddingBottom: '8px',
+      paddingStart: '16px',
+      paddingEnd: '16px'
+    }
+  };
+
+  return {
+    type: 'flex',
+    altText: text,
+    contents: bubble
+  };
+}
+
+export function replyFlexMessage(replyToken: string, text: string): Promise<any> {
+  const message = createAIReplyFlexMessage(text);
+  return getClient().replyMessage(replyToken, message);
+}
+
+export function pushFlexMessage(userId: string, text: string): Promise<any> {
+  const message = createAIReplyFlexMessage(text);
+  return getClient().pushMessage(userId, message);
 }
 
 export { getClient as client };
