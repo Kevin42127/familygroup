@@ -71,7 +71,7 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
             {
               type: 'text',
               text: '🤖',
-              size: 'lg',
+              size: 'xl',
               flex: 0
             },
             {
@@ -80,18 +80,20 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
               weight: 'bold',
               color: '#FFFFFF',
               size: 'lg',
-              flex: 1
+              flex: 1,
+              align: 'start'
             }
           ],
-          spacing: 'sm',
+          spacing: 'md',
           alignItems: 'center'
         }
       ],
       backgroundColor: '#1DB446',
-      paddingTop: '16px',
-      paddingBottom: '16px',
-      paddingStart: '16px',
-      paddingEnd: '16px'
+      paddingAll: 'lg',
+      paddingTop: 'lg',
+      paddingBottom: 'lg',
+      paddingStart: 'lg',
+      paddingEnd: 'lg'
     },
     body: {
       type: 'box',
@@ -99,28 +101,29 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
       contents: [
         {
           type: 'separator',
-          color: '#E5E5E5',
           margin: 'md'
         },
         {
-          type: 'text',
-          text: text,
-          wrap: true,
-          color: '#333333',
-          size: 'md',
-          lineSpacing: '4px',
-          margin: 'md'
+          type: 'box',
+          layout: 'vertical',
+          contents: [
+            {
+              type: 'text',
+              text: text,
+              wrap: true,
+              color: '#333333',
+              size: 'md',
+              lineSpacing: 'md'
+            }
+          ],
+          paddingAll: 'lg'
         },
         {
           type: 'separator',
-          color: '#E5E5E5',
           margin: 'md'
         }
       ],
-      paddingTop: '8px',
-      paddingBottom: '8px',
-      paddingStart: '16px',
-      paddingEnd: '16px'
+      paddingAll: 'none'
     }
   };
 
