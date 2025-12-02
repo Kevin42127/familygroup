@@ -1,4 +1,4 @@
-import { Client, TextMessage, validateSignature as lineValidateSignature } from '@line/bot-sdk';
+import { Client, TextMessage, ImageMessage, validateSignature as lineValidateSignature } from '@line/bot-sdk';
 import * as crypto from 'crypto';
 
 let client: Client | null = null;
@@ -33,6 +33,16 @@ export function pushMessage(userId: string, text: string): Promise<any> {
   const message: TextMessage = {
     type: 'text',
     text: text
+  };
+
+  return getClient().pushMessage(userId, message);
+}
+
+export function pushImageMessage(userId: string, imageUrl: string, previewUrl?: string): Promise<any> {
+  const message: ImageMessage = {
+    type: 'image',
+    originalContentUrl: imageUrl,
+    previewImageUrl: previewUrl || imageUrl
   };
 
   return getClient().pushMessage(userId, message);
