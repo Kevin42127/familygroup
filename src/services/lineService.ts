@@ -76,7 +76,7 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
               aspectMode: 'fit',
               backgroundColor: '#FFFFFF',
               flex: 0,
-              marginEnd: 'sm'
+              margin: 'sm'
             },
             {
               type: 'text',
