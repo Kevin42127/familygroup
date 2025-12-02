@@ -69,10 +69,14 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
           layout: 'horizontal',
           contents: [
             {
-              type: 'text',
-              text: '🤖',
-              size: 'xl',
-              flex: 0
+              type: 'image',
+              url: 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/smart_toy/default/24px.svg',
+              size: 'sm',
+              aspectRatio: '1:1',
+              aspectMode: 'fit',
+              backgroundColor: '#FFFFFF',
+              flex: 0,
+              marginEnd: 'sm'
             },
             {
               type: 'text',
@@ -125,7 +129,7 @@ export function createAIReplyFlexMessage(text: string): FlexMessage {
 
   return {
     type: 'flex',
-    altText: text,
+    altText: text.length > 400 ? text.substring(0, 400) + '...' : text,
     contents: bubble
   };
 }
